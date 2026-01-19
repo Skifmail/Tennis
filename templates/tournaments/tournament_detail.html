@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tournament.name }} - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ tournament.name }}</h1>
+            <div class="mb-3">
+                <span class="badge bg-primary">{{ tournament.get_category_display }}</span>
+                <span class="badge {% if tournament.status == 'ONGOING' %}bg-success{% elif tournament.status == 'UPCOMING' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {{ tournament.get_status_display }}
+                </span>
+                {% if tournament.level %}
+                    <span class="badge bg-info">Уровень: {{ tournament.get_level_display }}</span>
+                {% endif %}
+                {% if tournament.tournament_type %}
+                    <span class="badge bg-dark">{{ tournament.get_tournament_type_display }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if user.is_authenticated and tournament.status == 'UPCOMING' %}
+                {% if user in tournament.participants.all.user %}
+                    <button class="btn btn-success" disabled>
+                        <i class="bi bi-check-circle"></i> Вы зарегистрированы
+                    </button>
+                {% elif total_participants < tournament.max_participants %}
+                    <a href="{% url 'tournament_register' tournament.pk %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Зарегистрироваться
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary" disabled>Нет мест</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ total_participants }} / {{ tournament.max_participants }}</h3>
+                    <p class="text-muted mb-0">Участники</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ matches_played }}</h3>
+                    <p class="text-muted mb-0">Сыграно матчей</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ matches_scheduled }}</h3>
+                    <p class="text-muted mb-0">Запланировано</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ tournament.entry_fee|floatformat:0 }} ₽</h3>
+                    <p class="text-muted mb-0">Взнос</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Основная информация -->
+        <div class="col-md-8">
+            {% if tournament.image %}
+                <img src="{{ tournament.image.url }}" class="img-fluid rounded mb-4" alt="{{ tournament.name }}" style="max-height: 300px; width: 100%; object-fit: cover;">
+            {% endif %}
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Информация о турнире</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="bi bi-calendar3"></i> <strong>Даты:</strong> {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}</p>
+                            <p><i class="bi bi-geo-alt"></i> <strong>Место:</strong> {{ tournament.location|default:"Не указано" }}</p>
+                            <p><i class="bi bi-trophy"></i> <strong>Система:</strong> {{ tournament.get_scoring_system_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="bi bi-cash-coin"></i> <strong>Взнос:</strong> {{ tournament.entry_fee|floatformat:0 }} ₽</p>
+                            <p><i class="bi bi-award"></i> <strong>Приз:</strong> {{ tournament.prize_description|truncatewords:10 }}</p>
+                            {% if current_round %}
+                                <p><i class="bi bi-flag"></i> <strong>Текущий раунд:</strong> {{ current_round }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if tournament.description %}
+                        <hr>
+                        <p class="mb-0">{{ tournament.description|linebreaks }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Жеребьевка (для админа) -->
+            {% if user.is_staff and can_draw %}
+                <div class="alert alert-warning">
+                    <h5><i class="bi bi-shuffle"></i> Жеребьевка</h5>
+                    <p>Количество участников: {{ total_participants }}. Можно провести жеребьевку.</p>
+                    <form method="post" action="{% url 'tournament_draw' tournament.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('Провести жеребьевку и создать матчи?')">
+                            <i class="bi bi-shuffle"></i> Провести жеребьевку
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <!-- Сетка турнира -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Сетка турнира</h5>
+                </div>
+                <div class="card-body">
+                    {% if matches %}
+                        {% for round_name, round_matches in rounds_data.items %}
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2">
+                                    <span class="badge bg-primary">{{ round_name }}</span>
+                                </h6>
+                                <div class="list-group">
+                                    {% for match in round_matches %}
+                                        <a href="{% url 'match_detail' match.pk %}" class="list-group-item list-group-item-action">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">
+                                                        <span class="{% if match.winner == match.player1 %}fw-bold text-success{% endif %}">
+                                                            {{ match.player1.get_full_name|default:match.player1.username }}
+                                                        </span>
+                                                        vs
+                                                        <span class="{% if match.winner == match.player2 %}fw-bold text-success{% endif %}">
+                                                            {{ match.player2.get_full_name|default:match.player2.username }}
+                                                        </span>
+                                                    </h6>
+                                                    {% if match.scheduled_date %}
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-calendar"></i> {{ match.scheduled_date|date:"d.m.Y H:i" }}
+                                                        </small>
+                                                    {% endif %}
+                                                    {% if match.court_location %}
+                                                        <small class="text-muted ms-2">
+                                                            <i class="bi bi-geo-alt"></i> {{ match.court_location.name }}
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="text-end">
+                                                    {% if match.status == 'FINISHED' %}
+                                                        <div class="badge bg-success">Завершен</div>
+                                                        {% if match.get_score %}
+                                                            <div class="mt-1"><strong>{{ match.get_score }}</strong></div>
+                                                        {% endif %}
+                                                    {% elif match.status == 'IN_PROGRESS' %}
+                                                        <div class="badge bg-warning">Идет</div>
+                                                    {% else %}
+                                                        <div class="badge bg-secondary">Запланирован</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">Матчи еще не назначены</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Участники -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people"></i> Участники ({{ total_participants }} / {{ tournament.max_participants }})
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 800px; overflow-y: auto;">
+                    {% if participants %}
+                        <div class="list-group list-group-flush">
+                            {% for participant in participants %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex align-items-start">
+                                        {% if participant.user.photo %}
+                                            <img src="{{ participant.user.photo.url }}" class="rounded-circle me-3" alt="{{ participant.user.username }}" style="width: 50px; height: 50px; object-fit: cover;">
+                                        {% else %}
+                                            <i class="bi bi-person-circle me-3" style="font-size: 50px; color: #dee2e6;"></i>
+                                        {% endif %}
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                <a href="{% url 'profile' participant.user.username %}" class="text-decoration-none">
+                                                    {{ participant.user.get_full_name|default:participant.user.username }}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted">@{{ participant.user.username }}</small>
+                                            {% if participant.seed %}
+                                                <span class="badge bg-warning text-dark ms-2">Посев: {{ participant.seed }}</span>
+                                            {% endif %}
+                                            <div class="mt-1">
+                                                <small>
+                                                    <i class="bi bi-star-fill text-warning"></i> {{ participant.user.rating }}
+                                                    {% if participant.user.city %}
+                                                        | <i class="bi bi-geo-alt"></i> {{ participant.user.city }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-person-x" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">Нет участников</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Админ-панель -->
+            {% if user.is_staff %}
+                <div class="card mt-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-shield-check"></i> Админ-панель</h6>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'admin:tournaments_tournament_change' tournament.pk %}" class="btn btn-sm btn-primary w-100 mb-2">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </a>
+                        <a href="{% url 'admin:tournaments_participant_changelist' %}?tournament__id__exact={{ tournament.pk }}" class="btn btn-sm btn-info w-100 mb-2">
+                            <i class="bi bi-people"></i> Участники
+                        </a>
+                        <a href="{% url 'admin:tournaments_match_add' %}?tournament={{ tournament.pk }}" class="btn btn-sm btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Добавить матч
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

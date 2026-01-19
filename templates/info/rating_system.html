@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Как работает система рейтинга - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Заголовок -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'info:hub' %}">Справочный центр</a></li>
+                    <li class="breadcrumb-item active">Система рейтинга</li>
+                </ol>
+            </nav>
+
+            <h1 class="display-5 mb-4">⭐ Как работает система рейтинга</h1>
+            <p class="lead text-muted mb-4">Полное объяснение того, как формируется рейтинг и как начисляются очки на платформе Теннисная Лига</p>
+
+            <!-- Основные концепции -->
+            <section class="mb-5">
+                <h2 class="h3 mb-3"><i class="bi bi-gear"></i> Основные принципы</h2>
+                <div class="card border-0 bg-light p-4 rounded-3">
+                    <p class="mb-3">Система рейтинга на нашей платформе основана на динамическом подходе, где рейтинг каждого игрока постоянно обновляется на основе результатов его матчей.</p>
+                    <p class="mb-3"><strong>Ключевые принципы:</strong></p>
+                    <ul>
+                        <li><strong>Динамичность</strong> — рейтинг изменяется после каждого матча</li>
+                        <li><strong>Справедливость</strong> — игроки получают бонусы за побед над более сильными соперниками</li>
+                        <li><strong>Мотивация</strong> — система заставляет играть против достойных противников</li>
+                        <li><strong>Стабильность</strong> — система защищена от манипуляций</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Как начисляются очки -->
+            <section class="mb-5">
+                <h2 class="h3 mb-3"><i class="bi bi-graph-up"></i> Начисление очков</h2>
+
+                <div class="card border-0 mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-check-circle"></i> При победе</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">Количество очков зависит от рейтинга противника:</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Рейтинг противника</th>
+                                        <th>Очки при победе</th>
+                                        <th>Значение</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Выше вашего на 200+ очков</td>
+                                        <td><span class="badge bg-success">+40 очков</span></td>
+                                        <td>Максимальный бонус за сенсационную победу</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Выше вашего на 100-200 очков</td>
+                                        <td><span class="badge bg-success">+30 очков</span></td>
+                                        <td>Большой бонус за победу над сильным соперником</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Близок к вашему (±50 очков)</td>
+                                        <td><span class="badge bg-info">+20 очков</span></td>
+                                        <td>Стандартный результат</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ниже вашего на 100-200 очков</td>
+                                        <td><span class="badge bg-warning">+10 очков</span></td>
+                                        <td>Малый бонус за ожидаемую победу</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ниже вашего на 200+ очков</td>
+                                        <td><span class="badge bg-danger">+5 очков</span></td>
+                                        <td>Минимальный результат за победу над более слабым</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-x-circle"></i> При поражении</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">При поражении вы теряете очки:</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Рейтинг противника</th>
+                                        <th>Очки при поражении</th>
+                                        <th>Значение</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Выше вашего на 200+ очков</td>
+                                        <td><span class="badge bg-success">-5 очков</span></td>
+                                        <td>Минимальный штраф за проигрыш более сильному</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Выше вашего на 100-200 очков</td>
+                                        <td><span class="badge bg-warning">-10 очков</span></td>
+                                        <td>Малый штраф</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Близок к вашему (±50 очков)</td>
+                                        <td><span class="badge bg-warning">-20 очков</span></td>
+                                        <td>Стандартный штраф</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ниже вашего на 100-200 очков</td>
+                                        <td><span class="badge bg-danger">-30 очков</span></td>
+                                        <td>Большой штраф за проигрыш более слабому</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ниже вашего на 200+ очков</td>
+                                        <td><span class="badge bg-danger">-40 очков</span></td>
+                                        <td>Максимальный штраф за неожиданный проигрыш</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Примеры -->
+            <section class="mb-5">
+                <h2 class="h3 mb-3"><i class="bi bi-lightbulb"></i> Примеры расчёта</h2>
+
+                <div class="card mb-3 border-success border-2">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">✓ Пример 1: Победа над сильным противником</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>Ваш рейтинг:</strong> 1500 очков</p>
+                        <p class="mb-2"><strong>Рейтинг противника:</strong> 1750 очков (на 250 выше)</p>
+                        <p class="mb-3"><strong>Результат:</strong> Вы победили</p>
+                        <div class="alert alert-success mb-0">
+                            <strong>Вы получили: +40 очков</strong><br>
+                            Новый рейтинг: 1540 очков<br>
+                            <small class="text-muted">Это отличный результат! Победа над более сильным соперником даёт максимальный бонус.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-danger border-2">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">✗ Пример 2: Поражение от более слабого</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>Ваш рейтинг:</strong> 1500 очков</p>
+                        <p class="mb-2"><strong>Рейтинг противника:</strong> 1300 очков (на 200 ниже)</p>
+                        <p class="mb-3"><strong>Результат:</strong> Вы проиграли</p>
+                        <div class="alert alert-danger mb-0">
+                            <strong>Вы потеряли: -30 очков</strong><br>
+                            Новый рейтинг: 1470 очков<br>
+                            <small class="text-muted">Это значительная потеря! Проигрыш более слабому противнику очень дорого обходится.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-info border-2">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">ⓘ Пример 3: Матч между равными соперниками</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>Ваш рейтинг:</strong> 1500 очков</p>
+                        <p class="mb-2"><strong>Рейтинг противника:</strong> 1480 очков (примерно равны)</p>
+                        <p class="mb-3"><strong>Результат:</strong> Вы победили</p>
+                        <div class="alert alert-info mb-0">
+                            <strong>Вы получили: +20 очков</strong><br>
+                            Новый рейтинг: 1520 очков<br>
+                            <small class="text-muted">Стандартный результат для матча между равными соперниками.</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Дополнительные факторы -->
+            <section class="mb-5">
+                <h2 class="h3 mb-3"><i class="bi bi-sliders"></i> Дополнительные факторы</h2>
+
+                <div class="accordion" id="factorsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#factor1">
+                                <i class="bi bi-activity"></i> Активность
+                            </button>
+                        </h2>
+                        <div id="factor1" class="accordion-collapse collapse show" data-bs-parent="#factorsAccordion">
+                            <div class="accordion-body">
+                                <p>Игроки, которые регулярно участвуют в турнирах, получают небольшой бонус (до +5% к очкам). Это поощряет активное участие в жизни сообщества.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#factor2">
+                                <i class="bi bi-speedometer2"></i> Консистентность
+                            </button>
+                        </h2>
+                        <div id="factor2" class="accordion-collapse collapse" data-bs-parent="#factorsAccordion">
+                            <div class="accordion-body">
+                                <p>Если вы выигрываете несколько матчей подряд, рейтинг растёт быстрее. Если вы проигрываете подряд, потери замедляются. Это помогает предотвратить излишние колебания.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#factor3">
+                                <i class="bi bi-calendar-event"></i> Сезонность
+                            </button>
+                        </h2>
+                        <div id="factor3" class="accordion-collapse collapse" data-bs-parent="#factorsAccordion">
+                            <div class="accordion-body">
+                                <p>Рейтинг пересчитывается каждый сезон с небольшим понижением (15-20% к предыдущему сезону). Это позволяет новичкам присоединяться и давать шанс всем игрокам на переоценку.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#factor4">
+                                <i class="bi bi-trophy"></i> Турнирные бонусы
+                            </button>
+                        </h2>
+                        <div id="factor4" class="accordion-collapse collapse" data-bs-parent="#factorsAccordion">
+                            <div class="accordion-body">
+                                <p>За победу в турнирах высокого рейтинга (много сильных противников) начисляются дополнительные бонусные очки. Чемпионы крупных турниров получают особые звания и награды.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Часто задаваемые вопросы -->
+            <section class="mb-5">
+                <h2 class="h3 mb-3"><i class="bi bi-question-circle"></i> Вопросы?</h2>
+                <div class="alert alert-light border">
+                    <p><strong>Почему мой рейтинг упал после победы?</strong></p>
+                    <p class="text-muted mb-0">Ваш рейтинг может измениться в зависимости от результатов других игроков. Это нормально, особенно если много других матчей было сыграно в тот же день.</p>
+                </div>
+                <div class="alert alert-light border">
+                    <p><strong>Как быстро начислены очки после матча?</strong></p>
+                    <p class="text-muted mb-0">Очки начисляются сразу же после подтверждения результата матча обоими игроками. Это занимает не более 30 секунд.</p>
+                </div>
+                <div class="alert alert-light border">
+                    <p><strong>Можно ли обжаловать результат матча?</strong></p>
+                    <p class="text-muted mb-0">Да, если вы считаете, что результат неправильный, вы можете обратиться к администрации с доказательствами. Администраторы рассмотрят вашу жалобу.</p>
+                </div>
+            </section>
+
+            <!-- Навигация -->
+            <nav class="d-flex justify-content-between mt-5 pt-4 border-top">
+                <a href="{% url 'info:hub' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Вернуться в справочный центр
+                </a>
+                <a href="{% url 'info:points' %}" class="btn btn-primary">
+                    Расчёт очков <i class="bi bi-arrow-right"></i>
+                </a>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}

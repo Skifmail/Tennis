@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Корты теннисные - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Заголовок -->
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">
+            <i class="bi bi-geo-alt-fill text-danger"></i> Справочник кортов
+        </h1>
+        <p class="lead text-muted">Найдите идеальный корт для игры в вашем городе</p>
+    </div>
+    
+    <!-- Фильтры -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel-fill"></i> Фильтры
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small">
+                        <i class="bi bi-map"></i> Регион
+                    </label>
+                    <select name="region" class="form-select">
+                        <option value="">Все регионы</option>
+                        {% for value, label in region_choices %}
+                            <option value="{{ value }}" {% if request.GET.region == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">
+                        <i class="bi bi-geo-alt"></i> Город
+                    </label>
+                    <input type="text" name="city" class="form-control" placeholder="Например: Москва" value="{{ request.GET.city }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">
+                        <i class="bi bi-cash-coin"></i> Макс. стоимость/час (₽)
+                    </label>
+                    <input type="number" name="max_cost" class="form-control" placeholder="3000" value="{{ request.GET.max_cost }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Применить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Статистика -->
+    {% if courts %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">Найдено кортов: <strong>{{ page_obj.paginator.count }}</strong></span>
+            </div>
+            <div class="small text-muted">
+                <i class="bi bi-sort-down"></i> Сортировка: по стоимости
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Список кортов -->
+    <div class="row g-4">
+        {% for court in courts %}
+        <div class="col-md-6 col-lg-4">
+            <div class="court-card card h-100 shadow-sm border-0 hover-lift">
+                <!-- Изображение или placeholder -->
+                {% if court.image %}
+                    <img src="{{ court.image.url }}" class="card-img-top" alt="{{ court.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top bg-gradient-success d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="bi bi-tennis text-white" style="font-size: 4rem; opacity: 0.3;"></i>
+                    </div>
+                {% endif %}
+                
+                <!-- Бейджи на изображении -->
+                <div class="position-absolute top-0 end-0 m-2">
+                    {% if court.has_indoor %}
+                        <span class="badge bg-info">
+                            <i class="bi bi-house-door"></i> Крытый
+                        </span>
+                    {% endif %}
+                    {% if court.has_outdoor %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-sun"></i> Открытый
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body d-flex flex-column">
+                    <!-- Название и адрес -->
+                    <h5 class="card-title">{{ court.name }}</h5>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        {{ court.address }}
+                    </p>
+                    <div class="mb-2">
+                        <span class="badge bg-primary">{{ court.get_region_display }}</span>
+                        {% if court.city %}
+                            <span class="badge bg-secondary">{{ court.city }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Основная информация -->
+                    <div class="mb-3 flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">
+                                <i class="bi bi-cash-coin"></i> Стоимость
+                            </span>
+                            <strong class="text-primary fs-5">{{ court.cost_per_hour }} ₽/час</strong>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> {{ court.working_hours }}
+                            </small>
+                        </div>
+                        
+                        {% if court.phone %}
+                        <div class="mb-2">
+                            <small>
+                                <i class="bi bi-telephone text-success"></i>
+                                <a href="tel:{{ court.phone }}" class="text-decoration-none">{{ court.phone }}</a>
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        {% if court.website %}
+                        <div class="mb-2">
+                            <small>
+                                <i class="bi bi-globe text-info"></i>
+                                <a href="{{ court.website }}" target="_blank" class="text-decoration-none">Сайт</a>
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        {% if court.facilities %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                {{ court.facilities|truncatewords:8 }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Рейтинг и кнопка -->
+                    <div class="mt-auto">
+                        {% if court.rating %}
+                            <div class="mb-2">
+                                <small class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= court.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted">({{ court.rating }})</span>
+                                </small>
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{% url 'court_detail' court.pk %}" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-right-circle"></i> Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #ddd;"></i>
+                <p class="text-muted mt-3 mb-0">Кортов не найдено по заданным критериям</p>
+                <a href="{% url 'court_list' %}" class="btn btn-outline-primary mt-3">
+                    Сбросить фильтры
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.region %}region={{ request.GET.region }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}{% if request.GET.max_cost %}max_cost={{ request.GET.max_cost }}&{% endif %}page=1">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.region %}region={{ request.GET.region }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}{% if request.GET.max_cost %}max_cost={{ request.GET.max_cost }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                        <i class="bi bi-chevron-left"></i> Предыдущая
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.region %}region={{ request.GET.region }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}{% if request.GET.max_cost %}max_cost={{ request.GET.max_cost }}&{% endif %}page={{ page_obj.next_page_number }}">
+                        Следующая <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.region %}region={{ request.GET.region }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}{% if request.GET.max_cost %}max_cost={{ request.GET.max_cost }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    
+    .court-card {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .court-card.hover-lift:hover {
+        transform: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+    
+    .court-card .card-img-top {
+        border-bottom: 3px solid #28a745;
+    }
+</style>
+{% endblock %}

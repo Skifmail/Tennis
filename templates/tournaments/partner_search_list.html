@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Поиск партнера - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Заголовок -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-2">
+                <i class="bi bi-people-fill text-info"></i> Поиск партнера для игры
+            </h1>
+            <p class="lead text-muted">Найдите идеального партнера для тренировок или товарищеских матчей</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            {% if user.is_authenticated %}
+                <a href="{% url 'partner_search_create' %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-plus-circle-fill"></i> Создать заявку
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Фильтры -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel-fill"></i> Фильтры поиска
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small">
+                        <i class="bi bi-trophy"></i> Вид спорта
+                    </label>
+                    <select name="sport" class="form-select">
+                        <option value="">Все виды</option>
+                        {% for value, label in sport_choices %}
+                            <option value="{{ value }}" {% if request.GET.sport == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">
+                        <i class="bi bi-star"></i> Уровень игры
+                    </label>
+                    <select name="level" class="form-select">
+                        <option value="">Все уровни</option>
+                        {% for value, label in level_choices %}
+                            <option value="{{ value }}" {% if request.GET.level == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">
+                        <i class="bi bi-geo-alt"></i> Город
+                    </label>
+                    <input type="text" name="city" class="form-control" placeholder="Например: Москва" value="{{ request.GET.city }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Применить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Статистика -->
+    {% if searches %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">Найдено заявок: <strong>{{ page_obj.paginator.count }}</strong></span>
+            </div>
+            <div class="small text-muted">
+                <i class="bi bi-clock-history"></i> Обновлено недавно
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Список заявок -->
+    <div class="row g-4">
+        {% for search in searches %}
+        <div class="col-md-6 col-lg-4">
+            <div class="partner-card card h-100 shadow-sm border-0 hover-lift">
+                <!-- Шапка карточки -->
+                <div class="card-header {% if search.is_active %}bg-success{% else %}bg-secondary{% endif %} text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge {% if search.is_active %}bg-light text-success{% else %}bg-dark{% endif %}">
+                            <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                            {% if search.is_active %}Активна{% else %}Неактивна{% endif %}
+                        </span>
+                        <small>
+                            <i class="bi bi-clock"></i> {{ search.created_at|timesince }} назад
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Профиль пользователя -->
+                    <div class="d-flex align-items-center mb-3">
+                        <a href="{% url 'profile' search.user.username %}" class="text-decoration-none">
+                            {% if search.user.photo %}
+                                <img src="{{ search.user.photo.url }}" class="rounded-circle me-3" 
+                                     style="width: 60px; height: 60px; object-fit: cover; border: 3px solid #28a745;" 
+                                     alt="{{ search.user.username }}">
+                            {% else %}
+                                <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 60px; height: 60px; border: 3px solid #28a745; font-size: 1.5rem;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div class="flex-grow-1">
+                            <a href="{% url 'profile' search.user.username %}" class="text-decoration-none">
+                                <h5 class="mb-0">{{ search.user.get_full_name|default:search.user.username }}</h5>
+                            </a>
+                            <small class="text-muted">@{{ search.user.username }}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Информация о заявке -->
+                    <div class="mb-3">
+                        <span class="badge bg-info">
+                            <i class="bi bi-trophy"></i> {{ search.get_sport_type_display }}
+                        </span>
+                        <span class="badge bg-warning">
+                            <i class="bi bi-star-fill"></i> {{ search.skill_level }}
+                        </span>
+                    </div>
+                    
+                    <!-- Детали -->
+                    <div class="details-block mb-3">
+                        <div class="detail-item mb-2">
+                            <i class="bi bi-clock text-primary"></i>
+                            <small class="text-muted">Время:</small>
+                            <strong class="ms-1">{{ search.preferred_time }}</strong>
+                        </div>
+                        <div class="detail-item mb-2">
+                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                            <small class="text-muted">Место:</small>
+                            <strong class="ms-1">{{ search.preferred_location }}</strong>
+                        </div>
+                        {% if search.user.city %}
+                            <div class="detail-item mb-2">
+                                <i class="bi bi-pin-map text-success"></i>
+                                <small class="text-muted">Город:</small>
+                                <strong class="ms-1">{{ search.user.city }}</strong>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Рейтинг игрока (если есть) -->
+                    {% if search.user.rating %}
+                        <div class="rating-info mb-3 p-2 bg-light rounded">
+                            <small class="text-muted d-block mb-1">Рейтинг игрока:</small>
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-primary">Рейтинг: {{ search.user.rating.points }}</span>
+                                <span class="badge bg-info">NTRP: {{ search.user.rating.ntrp_level }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Описание -->
+                    {% if search.description %}
+                        <div class="mb-3">
+                            <small class="text-muted">{{ search.description|truncatewords:20 }}</small>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Действия -->
+                    <div class="mt-auto">
+                        {% if search.user != user and search.is_active %}
+                            <div class="d-grid gap-2">
+                                {% if search.user.phone %}
+                                    <a href="tel:{{ search.user.phone }}" class="btn btn-success">
+                                        <i class="bi bi-telephone-fill"></i> {{ search.user.phone }}
+                                    </a>
+                                {% endif %}
+                                {% if search.user.email %}
+                                    <a href="mailto:{{ search.user.email }}" class="btn btn-outline-primary">
+                                        <i class="bi bi-envelope-fill"></i> Написать
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'profile' search.user.username %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-person-circle"></i> Профиль
+                                </a>
+                            </div>
+                        {% elif search.user == user %}
+                            <div class="alert alert-info mb-0 text-center small">
+                                <i class="bi bi-info-circle"></i> Это ваша заявка
+                            </div>
+                        {% else %}
+                            <div class="alert alert-secondary mb-0 text-center small">
+                                Заявка неактивна
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Футер с дополнительной информацией -->
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3"></i> {{ search.created_at|date:"d.m.Y" }}
+                        </small>
+                        {% if search.contact_info %}
+                            <small class="text-muted" data-bs-toggle="tooltip" title="{{ search.contact_info }}">
+                                <i class="bi bi-chat-dots"></i> Есть контакты
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 5rem; color: #ddd;"></i>
+                <h3 class="mt-3 text-muted">Заявок не найдено</h3>
+                <p class="text-muted">Будьте первым! Создайте свою заявку на поиск партнера.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'partner_search_create' %}" class="btn btn-success btn-lg mt-3">
+                        <i class="bi bi-plus-circle-fill"></i> Создать заявку
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg mt-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти для создания заявки
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.sport %}sport={{ request.GET.sport }}&{% endif %}{% if request.GET.level %}level={{ request.GET.level }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}page=1">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.sport %}sport={{ request.GET.sport }}&{% endif %}{% if request.GET.level %}level={{ request.GET.level }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                        <i class="bi bi-chevron-left"></i> Предыдущая
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.sport %}sport={{ request.GET.sport }}&{% endif %}{% if request.GET.level %}level={{ request.GET.level }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}page={{ page_obj.next_page_number }}">
+                        Следующая <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.sport %}sport={{ request.GET.sport }}&{% endif %}{% if request.GET.level %}level={{ request.GET.level }}&{% endif %}{% if request.GET.city %}city={{ request.GET.city }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+    .partner-card {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .partner-card.hover-lift:hover {
+        transform: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+    
+    .details-block {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+    
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .rating-info {
+        border-left: 3px solid #0dcaf0;
+    }
+</style>
+{% endblock %}

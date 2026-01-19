@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Турниры - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Турниры</h1>
+        {% if user.is_staff %}
+            <a href="{% url 'admin:tournaments_tournament_add' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Создать турнир
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="bi bi-funnel"></i> Фильтры
+            </h5>
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Категория</label>
+                    <select name="category" id="category" class="form-select" value="{{ request.GET.category }}">
+                        <option value="">Все категории</option>
+                        <option value="MEN" {% if request.GET.category == 'MEN' %}selected{% endif %}>Мужская</option>
+                        <option value="WOMEN" {% if request.GET.category == 'WOMEN' %}selected{% endif %}>Женская</option>
+                        <option value="MIXED" {% if request.GET.category == 'MIXED' %}selected{% endif %}>Смешанная</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Статус</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Все статусы</option>
+                        <option value="UPCOMING" {% if request.GET.status == 'UPCOMING' %}selected{% endif %}>Предстоящий</option>
+                        <option value="ONGOING" {% if request.GET.status == 'ONGOING' %}selected{% endif %}>Идёт</option>
+                        <option value="FINISHED" {% if request.GET.status == 'FINISHED' %}selected{% endif %}>Завершён</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="level" class="form-label">Уровень</label>
+                    <select name="level" id="level" class="form-select">
+                        <option value="">Все уровни</option>
+                        <option value="BEGINNER" {% if request.GET.level == 'BEGINNER' %}selected{% endif %}>Начинающий</option>
+                        <option value="INTERMEDIATE" {% if request.GET.level == 'INTERMEDIATE' %}selected{% endif %}>Средний</option>
+                        <option value="ADVANCED" {% if request.GET.level == 'ADVANCED' %}selected{% endif %}>Продвинутый</option>
+                        <option value="PROFESSIONAL" {% if request.GET.level == 'PROFESSIONAL' %}selected{% endif %}>Профессионал</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Применить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if tournaments %}
+        <div class="row g-4">
+            {% for tournament in tournaments %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm hover-card">
+                        {% if tournament.image %}
+                            <img src="{{ tournament.image.url }}" class="card-img-top" alt="{{ tournament.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-trophy" style="font-size: 4rem; color: #ddd;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <div class="mb-3">
+                                <h5 class="card-title mb-2">{{ tournament.name }}</h5>
+                                
+                                <div class="mb-2">
+                                    {% if tournament.status == 'UPCOMING' %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock"></i> {{ tournament.get_status_display }}
+                                        </span>
+                                    {% elif tournament.status == 'ONGOING' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-play-circle"></i> {{ tournament.get_status_display }}
+                                        </span>
+                                    {% elif tournament.status == 'FINISHED' %}
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-check-circle"></i> {{ tournament.get_status_display }}
+                                        </span>
+                                    {% endif %}
+                                    
+                                    <span class="badge bg-primary">
+                                        {{ tournament.get_level_display }}
+                                    </span>
+                                    
+                                    <span class="badge bg-info text-dark">
+                                        {{ tournament.get_tournament_type_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-muted small mb-3">
+                                <div class="mb-1">
+                                    <i class="bi bi-calendar3"></i> 
+                                    {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="bi bi-geo-alt"></i> 
+                                    {{ tournament.location|default:"Место не указано" }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="bi bi-people-fill"></i> 
+                                    <strong>{{ tournament.participants.count }}</strong> / {{ tournament.max_participants }}
+                                    {% if tournament.participants.count >= tournament.max_participants %}
+                                        <span class="badge bg-danger ms-1">Заполнено</span>
+                                    {% elif tournament.participants.count >= tournament.max_participants|add:"-2" %}
+                                        <span class="badge bg-warning text-dark ms-1">Почти заполнено</span>
+                                    {% endif %}
+                                </div>
+                                {% if tournament.entry_fee %}
+                                    <div class="mb-1">
+                                        <i class="bi bi-cash"></i> 
+                                        <strong>{{ tournament.entry_fee }} ₽</strong>
+                                    </div>
+                                {% endif %}
+                                {% if tournament.prize %}
+                                    <div>
+                                        <i class="bi bi-trophy-fill text-warning"></i> 
+                                        <strong>{{ tournament.prize }} ₽</strong>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if tournament.description %}
+                                <p class="card-text text-muted small text-truncate mb-3">
+                                    {{ tournament.description|truncatewords:15 }}
+                                </p>
+                            {% endif %}
+                            
+                            <div class="mt-auto">
+                                <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-primary w-100">
+                                    <i class="bi bi-arrow-right-circle"></i> Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-trophy" style="font-size: 5rem; color: #ddd;"></i>
+            <h3 class="mt-3 text-muted">Турниров не найдено</h3>
+            <p class="text-muted">Попробуйте изменить фильтры или проверьте позже</p>
+        </div>
+    {% endif %}
+
+    {% if is_paginated %}
+        <nav aria-label="Навигация по страницам" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Создать заявку партнера - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Создать заявку на поиск партнера</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="sport_type" class="form-label">Вид спорта <span class="text-danger">*</span></label>
+                            <select name="sport_type" id="sport_type" class="form-select" required>
+                                <option value="">Выберите вид спорта</option>
+                                {% for value, label in form.fields.sport_type.choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="skill_level" class="form-label">Ваш уровень игры (NTRP) <span class="text-danger">*</span></label>
+                            <select name="skill_level" id="skill_level" class="form-select" required>
+                                <option value="">Выберите уровень</option>
+                                {% for value, label in form.fields.skill_level.choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="preferred_time" class="form-label">Предпочтительное время <span class="text-danger">*</span></label>
+                            <textarea name="preferred_time" id="preferred_time" class="form-control" rows="2" 
+                                      placeholder="Например: Будни вечером, Выходные днем" required>{{ form.preferred_time.value }}</textarea>
+                            <small class="text-muted">Укажите время, когда вы можете играть</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="preferred_location" class="form-label">Предпочтительное место <span class="text-danger">*</span></label>
+                            <textarea name="preferred_location" id="preferred_location" class="form-control" rows="2" 
+                                      placeholder="Например: Район, название корта" required>{{ form.preferred_location.value }}</textarea>
+                            <small class="text-muted">Укажите предпочтительный район или корт</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contact_info" class="form-label">Дополнительная контактная информация</label>
+                            <textarea name="contact_info" id="contact_info" class="form-control" rows="2" 
+                                      placeholder="Telegram, Whatsapp или другая информация">{{ form.contact_info.value }}</textarea>
+                            <small class="text-muted">Опционально. Помощь партнеру связаться с вами</small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Как это работает:</h6>
+                            <ul class="mb-0">
+                                <li>Укажите свой уровень игры</li>
+                                <li>Расскажите, когда и где вы хотите играть</li>
+                                <li>Оставьте контактную информацию</li>
+                                <li>Ищущие партнеры смогут с вами связаться</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Создать заявку
+                            </button>
+                            <a href="{% url 'partner_search_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

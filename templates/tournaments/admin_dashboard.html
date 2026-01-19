@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Админ панель - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Заголовок -->
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">
+            <i class="bi bi-speedometer2 text-primary"></i> Административная панель
+        </h1>
+        <p class="lead text-muted">Управление платформой и модерация контента</p>
+    </div>
+    
+    <!-- Быстрая статистика -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Пользователи</h6>
+                            <h2 class="mb-0">{{ stats.total_users }}</h2>
+                        </div>
+                        <i class="bi bi-people-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                    <hr class="bg-white">
+                    <small>Активных: {{ stats.active_users }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Турниры</h6>
+                            <h2 class="mb-0">{{ stats.total_tournaments }}</h2>
+                        </div>
+                        <i class="bi bi-trophy-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                    <hr class="bg-white">
+                    <small>Активных: {{ stats.active_tournaments }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Матчи</h6>
+                            <h2 class="mb-0">{{ stats.total_matches }}</h2>
+                        </div>
+                        <i class="bi bi-joystick" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                    <hr class="bg-white">
+                    <small>Завершено: {{ stats.finished_matches }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-dark-50 mb-1">Корты</h6>
+                            <h2 class="mb-0">{{ stats.total_courts }}</h2>
+                        </div>
+                        <i class="bi bi-geo-alt-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                    <hr>
+                    <small>Активных: {{ stats.active_courts }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Левая колонка -->
+        <div class="col-lg-8">
+            <!-- Ожидают подтверждения -->
+            {% if pending_confirmations %}
+                <div class="card mb-4 shadow-sm border-warning">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Требуют внимания
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Матч</th>
+                                        <th>Игроки</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for match in pending_confirmations %}
+                                        <tr>
+                                            <td>{{ match.tournament.name|truncatewords:3 }}</td>
+                                            <td>
+                                                <small>
+                                                    {{ match.player1.username }} vs {{ match.player2.username }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning">Подтверждение</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'match_detail' match.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Последние турниры -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-trophy"></i> Последние турниры
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Даты</th>
+                                    <th>Статус</th>
+                                    <th>Участники</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tournament in recent_tournaments %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ tournament.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <small>{{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if tournament.status == 'ONGOING' %}bg-success{% elif tournament.status == 'UPCOMING' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                                {{ tournament.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ tournament.participants.count }}</td>
+                                        <td>
+                                            <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Последние пользователи -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people"></i> Новые пользователи
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Email</th>
+                                    <th>Зарегистрирован</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_obj in recent_users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if user_obj.photo %}
+                                                    <img src="{{ user_obj.photo.url }}" class="rounded-circle me-2" 
+                                                         style="width: 30px; height: 30px; object-fit: cover;" alt="{{ user_obj.username }}">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                                         style="width: 30px; height: 30px; font-size: 0.7rem;">
+                                                        {{ user_obj.username|slice:":1"|upper }}
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ user_obj.get_full_name|default:user_obj.username }}</strong>
+                                                    <br><small class="text-muted">@{{ user_obj.username }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user_obj.email }}</td>
+                                        <td>
+                                            <small>{{ user_obj.date_joined|timesince }} назад</small>
+                                        </td>
+                                        <td>
+                                            {% if user_obj.is_active %}
+                                                <span class="badge bg-success">Активен</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Неактивен</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'profile' user_obj.username %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка -->
+        <div class="col-lg-4">
+            <!-- Быстрые действия -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning-fill"></i> Быстрые действия
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/admin/tournaments/tournament/add/" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Создать турнир
+                        </a>
+                        <a href="/admin/tournaments/courtlocation/add/" class="btn btn-success">
+                            <i class="bi bi-geo-alt"></i> Добавить корт
+                        </a>
+                        <a href="/admin/accounts/user/" class="btn btn-info">
+                            <i class="bi bi-people"></i> Управление пользователями
+                        </a>
+                        <a href="/admin/tournaments/match/" class="btn btn-warning">
+                            <i class="bi bi-joystick"></i> Управление матчами
+                        </a>
+                        <a href="/admin/" class="btn btn-secondary">
+                            <i class="bi bi-gear"></i> Django Admin
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Статистика активности -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Активность
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Матчей за неделю</small>
+                            <strong>{{ stats.matches_this_week }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            {% with width=stats.matches_this_week|default:0 %}
+                            <div class="progress-bar bg-success" {% if width <= 100 %}style="width: {{ width }}%;"{% else %}style="width: 100%;"{% endif %}></div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Новых пользователей за неделю</small>
+                            <strong>{{ stats.new_users_this_week }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            {% with width=stats.new_users_this_week|default:0 %}
+                            <div class="progress-bar bg-primary" {% if width <= 100 %}style="width: {{ width }}%;"{% else %}style="width: 100%;"{% endif %}></div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small>Поиск партнеров (активных)</small>
+                            <strong>{{ stats.active_partner_searches }}</strong>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            {% with width=stats.active_partner_searches|default:0 %}
+                            <div class="progress-bar bg-info" {% if width <= 100 %}style="width: {{ width }}%;"{% else %}style="width: 100%;"{% endif %}></div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Система -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Система
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Версия Django:</span>
+                        <strong>{{ django_version }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Python:</span>
+                        <strong>{{ python_version }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">База данных:</span>
+                        <strong>{{ db_name }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+</style>
+{% endblock %}

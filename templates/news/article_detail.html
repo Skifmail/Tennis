@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ article.title }} - Теннисная Лига{% endblock %}
+
+{% block content %}
+<article>
+    <h1 class="mb-3">{{ article.title }}</h1>
+    
+    <div class="text-muted mb-4">
+        <i class="bi bi-person"></i> {{ article.author.get_full_name|default:article.author.username }}
+        <i class="bi bi-calendar ms-3"></i> {{ article.created_at|date:"d F Y, H:i" }}
+        <i class="bi bi-eye ms-3"></i> {{ article.views }} просмотров
+    </div>
+    
+    {% if article.image %}
+        <img src="{{ article.image.url }}" class="img-fluid rounded mb-4" alt="{{ article.title }}">
+    {% endif %}
+    
+    <div class="article-content">
+        {{ article.content|safe|linebreaks }}
+    </div>
+    
+    <hr class="my-4">
+    
+    <!-- Комментарии -->
+    <section class="comments-section mb-4">
+        <h3 class="mb-4">
+            <i class="bi bi-chat-dots"></i> Комментарии 
+            <span class="badge bg-secondary">{{ comments.count }}</span>
+        </h3>
+        
+        <!-- Список комментариев -->
+        {% if comments %}
+            <div class="comments-list mb-4">
+                {% for comment in comments %}
+                    <div class="card mb-3 comment-item" data-comment-id="{{ comment.id }}">
+                        <div class="card-header d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ comment.created_at|date:"d.m.Y H:i" }}
+                                </small>
+                            </div>
+                            {% if user.is_staff %}
+                                <div class="btn-group" role="group">
+                                    {% if not comment.is_approved %}
+                                        <button class="btn btn-sm btn-success approve-comment" 
+                                                data-comment-id="{{ comment.id }}"
+                                                title="Одобрить комментарий">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-danger delete-comment" 
+                                            data-comment-id="{{ comment.id }}"
+                                            title="Удалить комментарий">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            {% elif user == comment.author %}
+                                <button class="btn btn-sm btn-outline-danger delete-comment" 
+                                        data-comment-id="{{ comment.id }}"
+                                        title="Удалить мой комментарий">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ comment.content }}</p>
+                            {% if not comment.is_approved and user.is_staff %}
+                                <small class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-circle"></i> На модерации
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle"></i> Комментариев еще нет. Будьте первым!
+            </div>
+        {% endif %}
+        
+        <!-- Форма добавления комментария -->
+        {% if user.is_authenticated %}
+            <div class="add-comment-section">
+                <h5 class="mb-3">Добавить комментарий</h5>
+                <form id="comment-form" method="post" action="{% url 'add_comment' article.slug %}">
+                    {% csrf_token %}
+                    <div class="form-group mb-3">
+                        {% if form.content.errors %}
+                            <div class="alert alert-danger">{{ form.content.errors }}</div>
+                        {% endif %}
+                        {{ form.content }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Отправить комментарий
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-box-arrow-in-right"></i> 
+                <a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий
+            </div>
+        {% endif %}
+    </section>
+    
+    <hr class="my-4">
+    
+    <a href="{% url 'article_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Вернуться к новостям
+    </a>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Удаление комментария
+    document.querySelectorAll('.delete-comment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+                const commentId = this.dataset.commentId;
+                fetch(`{% url 'delete_comment' pk=0 %}`.replace('0', commentId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector(`[data-comment-id="${commentId}"]`).remove();
+                        if (document.querySelectorAll('.comment-item').length === 0) {
+                            location.reload();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+    
+    // Одобрение комментария (только для админа)
+    document.querySelectorAll('.approve-comment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            fetch(`{% url 'approve_comment' pk=0 %}`.replace('0', commentId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+    
+    // Отправка формы комментария
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + (data.message || 'Не удалось добавить комментарий'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при отправке комментария');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

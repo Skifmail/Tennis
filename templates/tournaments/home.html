@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Теннисная Лига{% endblock %}
+
+{% block content %}
+<!-- Баннер -->
+<div class="hero-banner bg-gradient-primary text-dark p-5 rounded-3 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-3 fw-bold mb-3">
+                    <i class="bi bi-trophy-fill"></i> Теннисная Лига
+                </h1>
+                <p class="lead fs-4 mb-4">
+                    Любительские теннисные турниры по системе олимпийской сетки с жеребьевкой
+                </p>
+                {% if not user.is_authenticated %}
+                    <a class="btn btn-light btn-lg px-4" href="{% url 'register' %}">
+                        <i class="bi bi-person-plus"></i> Регистрация
+                    </a>
+                    <a class="btn btn-outline-light btn-lg px-4 ms-2" href="{% url 'tournament_list' %}">
+                        <i class="bi bi-trophy"></i> Турниры
+                    </a>
+                {% else %}
+                    <a class="btn btn-light btn-lg px-4" href="{% url 'my_games' %}">
+                        <i class="bi bi-controller"></i> Мои игры
+                    </a>
+                    <a class="btn btn-outline-light btn-lg px-4 ms-2" href="{% url 'tournament_list' %}">
+                        <i class="bi bi-trophy"></i> Все турниры
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-lg-4 text-center d-none d-lg-block">
+                <i class="bi bi-trophy" style="font-size: 10rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="container mb-5">
+    <div class="row g-4 text-center">
+        <div class="col-md-3">
+            <div class="stat-card p-4 h-100">
+                <div class="stat-icon text-primary mb-3">
+                    <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
+                </div>
+                <h2 class="display-5 fw-bold text-primary">{{ stats.total_tournaments }}</h2>
+                <p class="text-muted mb-0">Всего турниров</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card p-4 h-100">
+                <div class="stat-icon text-success mb-3">
+                    <i class="bi bi-calendar-check-fill" style="font-size: 3rem;"></i>
+                </div>
+                <h2 class="display-5 fw-bold text-success">{{ stats.active_tournaments }}</h2>
+                <p class="text-muted mb-0">Активных</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card p-4 h-100">
+                <div class="stat-icon text-info mb-3">
+                    <i class="bi bi-people-fill" style="font-size: 3rem;"></i>
+                </div>
+                <h2 class="display-5 fw-bold text-info">{{ stats.total_players }}</h2>
+                <p class="text-muted mb-0">Игроков</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card p-4 h-100">
+                <div class="stat-icon text-warning mb-3">
+                    <i class="bi bi-joystick" style="font-size: 3rem;"></i>
+                </div>
+                <h2 class="display-5 fw-bold text-warning">{{ stats.total_matches }}</h2>
+                <p class="text-muted mb-0">Сыгранных матчей</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Навигация -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="nav-card card h-100 shadow-sm border-0 hover-lift">
+                <div class="card-body text-center p-4">
+                    <div class="nav-icon text-warning mb-3">
+                        <i class="bi bi-trophy-fill" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h5 class="card-title">Турниры</h5>
+                    <p class="card-text text-muted">Олимпийская система с жеребьевкой</p>
+                    <a href="{% url 'tournament_list' %}" class="btn btn-outline-primary btn-sm mt-2">
+                        Перейти <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="nav-card card h-100 shadow-sm border-0 hover-lift">
+                <div class="card-body text-center p-4">
+                    <div class="nav-icon text-success mb-3">
+                        <i class="bi bi-person-fill-check" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h5 class="card-title">Рейтинг</h5>
+                    <p class="card-text text-muted">Система NTRP и мировой рейтинг</p>
+                    <a href="{% url 'rating_list' %}" class="btn btn-outline-primary btn-sm mt-2">
+                        Перейти <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="nav-card card h-100 shadow-sm border-0 hover-lift">
+                <div class="card-body text-center p-4">
+                    <div class="nav-icon text-info mb-3">
+                        <i class="bi bi-people" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h5 class="card-title">Партнеры</h5>
+                    <p class="card-text text-muted">Найди партнера для игры</p>
+                    <a href="{% url 'partner_search_list' %}" class="btn btn-outline-primary btn-sm mt-2">
+                        Перейти <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="nav-card card h-100 shadow-sm border-0 hover-lift">
+                <div class="card-body text-center p-4">
+                    <div class="nav-icon text-danger mb-3">
+                        <i class="bi bi-geo-alt-fill" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h5 class="card-title">Корты</h5>
+                    <p class="card-text text-muted">Справочник кортов города</p>
+                    <a href="{% url 'court_list' %}" class="btn btn-outline-primary btn-sm mt-2">
+                        Перейти <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Левая колонка: Турниры -->
+        <div class="col-lg-8">
+            <!-- Фильтры турниров -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel-fill"></i> Фильтр турниров
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small">Категория</label>
+                            <select name="category" class="form-select form-select-sm">
+                                <option value="">Все</option>
+                                {% for value, label in category_choices %}
+                                    <option value="{{ value }}" {% if request.GET.category == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Уровень</label>
+                            <select name="level" class="form-select form-select-sm">
+                                <option value="">Все</option>
+                                {% for value, label in level_choices %}
+                                    <option value="{{ value }}" {% if request.GET.level == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Регион</label>
+                            <select name="region" class="form-select form-select-sm">
+                                <option value="">Все</option>
+                                {% for value, label in region_choices %}
+                                    <option value="{{ value }}" {% if request.GET.region == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-search"></i> Применить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Список турниров -->
+            <h3 class="mb-3">
+                <i class="bi bi-trophy"></i> Предстоящие и текущие турниры
+            </h3>
+            <div class="row g-3">
+                {% for tournament in tournaments %}
+                    <div class="col-md-6">
+                        <div class="tournament-card card h-100 shadow-sm hover-lift">
+                            {% if tournament.image %}
+                                <img src="{{ tournament.image.url }}" class="card-img-top" alt="{{ tournament.name }}" style="height: 180px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                                    <i class="bi bi-trophy text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ tournament.name }}</h5>
+                                <div class="mb-2">
+                                    <span class="badge bg-primary">{{ tournament.get_category_display }}</span>
+                                    {% if tournament.status == 'ONGOING' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-play-circle"></i> {{ tournament.get_status_display }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ tournament.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    <i class="bi bi-calendar3"></i> {{ tournament.start_date|date:"d.m.Y" }} - {{ tournament.end_date|date:"d.m.Y" }}<br>
+                                    <i class="bi bi-geo-alt"></i> {{ tournament.get_region_display }}
+                                </div>
+                                <p class="card-text text-muted small flex-grow-1">
+                                    {{ tournament.description|truncatewords:15 }}
+                                </p>
+                                <a href="{% url 'tournament_detail' tournament.pk %}" class="btn btn-primary mt-auto">
+                                    <i class="bi bi-arrow-right-circle"></i> Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 4rem; color: #ddd;"></i>
+                            <p class="text-muted mt-3 mb-0">Нет турниров по заданным критериям</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Последние результаты -->
+            {% if recent_matches %}
+                <h3 class="mb-3 mt-5">
+                    <i class="bi bi-clock-history"></i> Последние результаты
+                </h3>
+                <div class="card shadow-sm">
+                    <div class="list-group list-group-flush">
+                        {% for match in recent_matches %}
+                            <a href="{% url 'match_detail' match.pk %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ match.player1.get_full_name|default:match.player1.username }}
+                                            <span class="text-muted">vs</span>
+                                            {{ match.player2.get_full_name|default:match.player2.username }}
+                                        </h6>
+                                        <div class="small text-muted">
+                                            {{ match.tournament.name }} - {{ match.round }}
+                                        </div>
+                                        <div class="mt-1">
+                                            <strong class="text-primary">{{ match.get_score }}</strong>
+                                            {% if match.winner %}
+                                                <span class="badge bg-success ms-2">
+                                                    Победитель: {{ match.winner.get_full_name|default:match.winner.username }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">{{ match.updated_at|date:"d.m.Y" }}</small>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Правая колонка: Топ игроки -->
+        <div class="col-lg-4">
+            {% if top_players %}
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-award-fill"></i> Топ игроки
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for rating in top_players %}
+                                <a href="{% url 'profile' rating.user.username %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                                    <div class="rank-badge me-3">
+                                        {% if rating.rank_position == 1 %}
+                                            <i class="bi bi-trophy-fill text-warning" style="font-size: 1.5rem;"></i>
+                                        {% elif rating.rank_position == 2 %}
+                                            <i class="bi bi-trophy-fill text-secondary" style="font-size: 1.3rem;"></i>
+                                        {% elif rating.rank_position == 3 %}
+                                            <i class="bi bi-trophy-fill" style="font-size: 1.1rem; color: #cd7f32;"></i>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">#{{ rating.rank_position }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if rating.user.photo %}
+                                        <img src="{{ rating.user.photo.url }}" alt="{{ rating.user.username }}" 
+                                             class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">
+                                            {{ rating.user.get_full_name|default:rating.user.username }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ rating.points }} очков | NTRP {{ rating.ntrp_level }}
+                                        </small>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'rating_list' %}" class="btn btn-sm btn-outline-primary">
+                            Полный рейтинг <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: #000;
+    }
+
+    .btn-outline-light {
+        color: #4a4a4a !important;
+        border-color: #d1d5db !important;
+    }
+
+    .btn-outline-light:hover {
+        background: #e9ecef !important;
+        color: #1f2933 !important;
+    }
+    
+    .hero-banner {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .nav-card.hover-lift:hover {
+        transform: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+    
+    .tournament-card.hover-lift:hover {
+        transform: none;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
+    }
+    
+    .rank-badge {
+        min-width: 40px;
+        text-align: center;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Внести результат матча - Теннисная Лига{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Внести результат матча</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>{{ match.tournament.name }}</h5>
+                        <p class="mb-0">{{ match.round }}</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-5 text-center">
+                            <h5>{{ match.player1.get_full_name|default:match.player1.username }}</h5>
+                            {% if match.player1.photo %}
+                                <img src="{{ match.player1.photo.url }}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ match.player1.username }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <h2 class="text-muted">vs</h2>
+                        </div>
+                        <div class="col-md-5 text-center">
+                            <h5>{{ match.player2.get_full_name|default:match.player2.username }}</h5>
+                            {% if match.player2.photo %}
+                                <img src="{{ match.player2.photo.url }}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ match.player2.username }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-warning">
+                            <strong>Правила:</strong> Матчи из 3-х сетов. В каждом сете играется тай-брейк. 
+                            По согласованию вместо 3-го сета может быть сыгран тай-брейк до 10 очков.
+                        </div>
+                        
+                        <!-- Сет 1 -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <strong>Сет 1</strong> <span class="text-danger">*</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ match.player1.username }}</label>
+                                        <input type="number" name="player1_set1" class="form-control" min="0" max="7" 
+                                               value="{{ match.player1_set1|default:'' }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ match.player2.username }}</label>
+                                        <input type="number" name="player2_set1" class="form-control" min="0" max="7" 
+                                               value="{{ match.player2_set1|default:'' }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Сет 2 -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <strong>Сет 2</strong> <span class="text-danger">*</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ match.player1.username }}</label>
+                                        <input type="number" name="player1_set2" class="form-control" min="0" max="7" 
+                                               value="{{ match.player1_set2|default:'' }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ match.player2.username }}</label>
+                                        <input type="number" name="player2_set2" class="form-control" min="0" max="7" 
+                                               value="{{ match.player2_set2|default:'' }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Сет 3 -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <strong>Сет 3</strong> <span class="text-muted">(при необходимости)</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ match.player1.username }}</label>
+                                        <input type="number" name="player1_set3" class="form-control" min="0" max="10" 
+                                               value="{{ match.player1_set3|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ match.player2.username }}</label>
+                                        <input type="number" name="player2_set3" class="form-control" min="0" max="10" 
+                                               value="{{ match.player2_set3|default:'' }}">
+                                    </div>
+                                </div>
+                                <small class="text-muted">Может быть сыгран тай-брейк до 10 очков</small>
+                            </div>
+                        </div>
+                        
+                        {% if match.player1_set1 %}
+                        <div class="alert alert-info">
+                            <strong>Текущий счет:</strong> {{ match.get_score }}
+                            <br>
+                            {% if match.score_confirmed_by_player1 %}
+                                <span class="badge bg-success">✓ Подтверждено игроком 1</span>
+                            {% endif %}
+                            {% if match.score_confirmed_by_player2 %}
+                                <span class="badge bg-success">✓ Подтверждено игроком 2</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Сохранить результат
+                            </button>
+                            <a href="{% url 'my_games' %}" class="btn btn-outline-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

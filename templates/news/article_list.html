@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Новости - Теннисная Лига{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Новости</h1>
+
+<div class="row">
+    {% for article in articles %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                {% if article.image %}
+                    <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}" style="max-height: 250px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ article.title }}</h5>
+                    <p class="card-text">{{ article.content|truncatewords:30|safe }}</p>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-person"></i> {{ article.author.username }}
+                        <i class="bi bi-calendar ms-2"></i> {{ article.created_at|date:"d.m.Y" }}
+                        <i class="bi bi-eye ms-2"></i> {{ article.views }}
+                    </small>
+                    <a href="{% url 'article_detail' article.slug %}" class="btn btn-sm btn-primary">Читать</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">Новостей пока нет</div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+            </li>
+        {% endif %}
+        
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

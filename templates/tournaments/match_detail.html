@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ match.player1.username }} vs {{ match.player2.username }} - Матч{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Заголовок и ссылка на турнир -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'tournament_detail' match.tournament.pk %}">{{ match.tournament.name }}</a></li>
+                <li class="breadcrumb-item active">Матч {{ match.round }}</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <!-- Основная информация о матче -->
+        <div class="col-lg-8 mb-4">
+            <!-- Игроки -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-trophy"></i> {{ match.round }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center align-items-center py-3">
+                        <!-- Игрок 1 -->
+                        <div class="col-md-5">
+                            <a href="{% url 'profile' match.player1.username %}" class="text-decoration-none">
+                                <div class="player-card p-3 {% if match.winner == match.player1 %}winner{% endif %}">
+                                    {% if match.player1.photo %}
+                                        <img src="{{ match.player1.photo.url }}" class="rounded-circle mb-3 border border-3 {% if match.winner == match.player1 %}border-success{% else %}border-primary{% endif %}" 
+                                             alt="{{ match.player1.username }}" 
+                                             style="width: 120px; height: 120px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3 border border-3 {% if match.winner == match.player1 %}border-success{% else %}border-primary{% endif %}" 
+                                             style="width: 120px; height: 120px; font-size: 3rem; font-weight: bold;">
+                                            {{ match.player1.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <h4 class="mb-1">{{ match.player1.get_full_name|default:match.player1.username }}</h4>
+                                    <p class="text-muted mb-2">@{{ match.player1.username }}</p>
+                                    {% if match.player1.player_rating %}
+                                        <div>
+                                            <span class="badge bg-primary">{{ match.player1.player_rating.points }} очков</span>
+                                            <span class="badge bg-secondary">NTRP {{ match.player1.player_rating.ntrp_level }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if match.winner == match.player1 %}
+                                        <div class="mt-2">
+                                            <span class="badge bg-success fs-6">
+                                                <i class="bi bi-trophy-fill"></i> Победитель
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <!-- VS разделитель -->
+                        <div class="col-md-2">
+                            <div class="vs-divider">
+                                <h1 class="display-4 text-muted mb-0">VS</h1>
+                                {% if match.status == 'FINISHED' and match.get_score %}
+                                    <div class="score-display mt-2">
+                                        <h5 class="text-primary">{{ match.get_score }}</h5>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Игрок 2 -->
+                        <div class="col-md-5">
+                            <a href="{% url 'profile' match.player2.username %}" class="text-decoration-none">
+                                <div class="player-card p-3 {% if match.winner == match.player2 %}winner{% endif %}">
+                                    {% if match.player2.photo %}
+                                        <img src="{{ match.player2.photo.url }}" class="rounded-circle mb-3 border border-3 {% if match.winner == match.player2 %}border-success{% else %}border-primary{% endif %}" 
+                                             alt="{{ match.player2.username }}" 
+                                             style="width: 120px; height: 120px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3 border border-3 {% if match.winner == match.player2 %}border-success{% else %}border-primary{% endif %}" 
+                                             style="width: 120px; height: 120px; font-size: 3rem; font-weight: bold;">
+                                            {{ match.player2.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <h4 class="mb-1">{{ match.player2.get_full_name|default:match.player2.username }}</h4>
+                                    <p class="text-muted mb-2">@{{ match.player2.username }}</p>
+                                    {% if match.player2.player_rating %}
+                                        <div>
+                                            <span class="badge bg-primary">{{ match.player2.player_rating.points }} очков</span>
+                                            <span class="badge bg-secondary">NTRP {{ match.player2.player_rating.ntrp_level }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if match.winner == match.player2 %}
+                                        <div class="mt-2">
+                                            <span class="badge bg-success fs-6">
+                                                <i class="bi bi-trophy-fill"></i> Победитель
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Счет матча -->
+            {% if match.status == 'FINISHED' %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bar-chart-fill"></i> Счёт по сетам
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40%;">Игрок</th>
+                                        <th class="text-center" style="width: 20%;">Сет 1</th>
+                                        <th class="text-center" style="width: 20%;">Сет 2</th>
+                                        <th class="text-center" style="width: 20%;">Сет 3</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr {% if match.winner == match.player1 %}class="table-success"{% endif %}>
+                                        <td>
+                                            <strong>{{ match.player1.get_full_name|default:match.player1.username }}</strong>
+                                            {% if match.winner == match.player1 %}
+                                                <i class="bi bi-trophy-fill text-warning ms-2"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center"><strong class="fs-5">{{ match.player1_set1|default:"-" }}</strong></td>
+                                        <td class="text-center"><strong class="fs-5">{{ match.player1_set2|default:"-" }}</strong></td>
+                                        <td class="text-center"><strong class="fs-5">{{ match.player1_set3|default:"-" }}</strong></td>
+                                    </tr>
+                                    <tr {% if match.winner == match.player2 %}class="table-success"{% endif %}>
+                                        <td>
+                                            <strong>{{ match.player2.get_full_name|default:match.player2.username }}</strong>
+                                            {% if match.winner == match.player2 %}
+                                                <i class="bi bi-trophy-fill text-warning ms-2"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center"><strong class="fs-5">{{ match.player2_set1|default:"-" }}</strong></td>
+                                        <td class="text-center"><strong class="fs-5">{{ match.player2_set2|default:"-" }}</strong></td>
+                                        <td class="text-center"><strong class="fs-5">{{ match.player2_set3|default:"-" }}</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Подтверждение счета -->
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        {% if match.score_confirmed_by_player1 %}
+                                            <i class="bi bi-check-circle-fill text-success fs-4 me-2"></i>
+                                            <span class="text-success">Подтверждено {{ match.player1.username }}</span>
+                                        {% else %}
+                                            <i class="bi bi-hourglass-split text-warning fs-4 me-2"></i>
+                                            <span class="text-muted">Ожидание от {{ match.player1.username }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        {% if match.score_confirmed_by_player2 %}
+                                            <i class="bi bi-check-circle-fill text-success fs-4 me-2"></i>
+                                            <span class="text-success">Подтверждено {{ match.player2.username }}</span>
+                                        {% else %}
+                                            <i class="bi bi-hourglass-split text-warning fs-4 me-2"></i>
+                                            <span class="text-muted">Ожидание от {{ match.player2.username }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Контакты соперника (только для участников) -->
+            {% if user.is_authenticated and user in match.tournament.participants.all.values_list %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-lines-fill"></i> Контакты соперника
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user == match.player1 %}
+                            {% with opponent=match.player2 %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <i class="bi bi-person-fill"></i> 
+                                            <strong>{{ opponent.get_full_name|default:opponent.username }}</strong>
+                                        </p>
+                                        {% if opponent.phone %}
+                                            <p class="mb-2">
+                                                <i class="bi bi-telephone-fill"></i> 
+                                                <a href="tel:{{ opponent.phone }}">{{ opponent.phone }}</a>
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <i class="bi bi-envelope-fill"></i> 
+                                            <a href="mailto:{{ opponent.email }}">{{ opponent.email }}</a>
+                                        </p>
+                                        {% if opponent.city %}
+                                            <p class="mb-2">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ opponent.city }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% elif user == match.player2 %}
+                            {% with opponent=match.player1 %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <i class="bi bi-person-fill"></i> 
+                                            <strong>{{ opponent.get_full_name|default:opponent.username }}</strong>
+                                        </p>
+                                        {% if opponent.phone %}
+                                            <p class="mb-2">
+                                                <i class="bi bi-telephone-fill"></i> 
+                                                <a href="tel:{{ opponent.phone }}">{{ opponent.phone }}</a>
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <i class="bi bi-envelope-fill"></i> 
+                                            <a href="mailto:{{ opponent.email }}">{{ opponent.email }}</a>
+                                        </p>
+                                        {% if opponent.city %}
+                                            <p class="mb-2">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ opponent.city }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endif %}
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <small>
+                                <i class="bi bi-info-circle"></i> 
+                                Свяжитесь с соперником для согласования времени и места игры. 
+                                Время на каждую игру - 1 неделя.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Боковая панель -->
+        <div class="col-lg-4">
+            <!-- Информация о матче -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Информация
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item mb-3">
+                        <small class="text-muted">Турнир</small>
+                        <p class="mb-0">
+                            <a href="{% url 'tournament_detail' match.tournament.pk %}" class="fw-bold">
+                                {{ match.tournament.name }}
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <div class="info-item mb-3">
+                        <small class="text-muted">Раунд</small>
+                        <p class="mb-0"><strong>{{ match.round }}</strong></p>
+                    </div>
+                    
+                    <div class="info-item mb-3">
+                        <small class="text-muted">Статус</small>
+                        <p class="mb-0">
+                            {% if match.status == 'FINISHED' %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> {{ match.get_status_display }}
+                                </span>
+                            {% elif match.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-play-circle"></i> {{ match.get_status_display }}
+                                </span>
+                            {% elif match.status == 'SCHEDULED' %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-clock"></i> {{ match.get_status_display }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ match.get_status_display }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if match.scheduled_date %}
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Запланировано</small>
+                            <p class="mb-0">
+                                <i class="bi bi-calendar3"></i> {{ match.scheduled_date|date:"d.m.Y" }}<br>
+                                <i class="bi bi-clock"></i> {{ match.scheduled_date|date:"H:i" }}
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if match.deadline %}
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Дедлайн</small>
+                            <p class="mb-0 text-danger">
+                                <i class="bi bi-exclamation-triangle"></i> {{ match.deadline|date:"d.m.Y H:i" }}
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if match.court_location %}
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Корт</small>
+                            <p class="mb-0">
+                                <i class="bi bi-geo-alt"></i> {{ match.court_location.name }}<br>
+                                <small class="text-muted">{{ match.court_location.address }}</small>
+                            </p>
+                        </div>
+                    {% elif match.location %}
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Место</small>
+                            <p class="mb-0">
+                                <i class="bi bi-geo-alt"></i> {{ match.location }}
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if match.court_cost %}
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Стоимость корта</small>
+                            <p class="mb-0">
+                                <i class="bi bi-cash"></i> {{ match.court_cost }} ₽
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if match.actual_date %}
+                        <div class="info-item mb-0">
+                            <small class="text-muted">Фактически сыграно</small>
+                            <p class="mb-0">
+                                <i class="bi bi-calendar-check"></i> {{ match.actual_date|date:"d.m.Y H:i" }}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Админ панель -->
+            {% if user.is_staff %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear"></i> Админ
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'admin:tournaments_match_change' match.pk %}" class="btn btn-outline-primary w-100 mb-2" target="_blank">
+                            <i class="bi bi-pencil"></i> Редактировать матч
+                        </a>
+                        <a href="{% url 'admin:tournaments_tournament_change' match.tournament.pk %}" class="btn btn-outline-secondary w-100" target="_blank">
+                            <i class="bi bi-trophy"></i> Редактировать турнир
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+    
+    .player-card {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .player-card:hover {
+        transform: translateY(-5px);
+        background-color: #f8f9fa;
+    }
+    
+    .player-card.winner {
+        background-color: #d4edda;
+    }
+    
+    .vs-divider {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .info-item {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .card {
+        border: none;
+    }
+</style>
+{% endblock %}
