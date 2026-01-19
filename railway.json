@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py create_superuser_auto && gunicorn tennis_league.wsgi",
+    "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py create_superuser_auto && python manage.py populate_sample_data && gunicorn tennis_league.wsgi",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
